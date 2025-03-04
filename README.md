@@ -6,7 +6,6 @@ This project provides a forecasting service that integrates with Grafana to disp
 
 - Time series forecasting using ARIMA models
 - Grafana JSON API integration
-- Mock Prometheus metrics for testing
 - Fallback mechanisms for robustness
 - Configurable time ranges and regions
 
@@ -14,7 +13,6 @@ This project provides a forecasting service that integrates with Grafana to disp
 
 - Python 3.7+
 - Grafana 8.0+ with the Grafana JSON Datasource plugin installed
-- (Optional) Prometheus for real metrics collection
 
 ## Installation
 
@@ -27,9 +25,8 @@ This project provides a forecasting service that integrates with Grafana to disp
 
 ## Usage
 
-
 ```bash
-python prometheus_forecasting.py
+python forecasting.py
 ```
 
 The service will start on port 9001 by default. You can configure the port using the `API_PORT` environment variable.
@@ -39,7 +36,7 @@ The service will start on port 9001 by default. You can configure the port using
 1. Open Grafana (default: http://localhost:3000)
 2. Go to Configuration > Data Sources
 3. Add a new data source of type "Grafana JSON Datasource"
-4. Set the URL to http://localhost:9001 (or wherever your service is running)
+4. Set the URL to http://localhost:9001/forecast (or wherever your service is running)
 5. Save and test the data source
 6. Import the dashboard by going to Create > Import
 7. Upload the `grafana_dashboard.json` file or paste its contents
@@ -49,13 +46,11 @@ The service will start on port 9001 by default. You can configure the port using
 
 The following environment variables can be used to configure the service:
 
-- `PROMETHEUS_URL`: URL of the Prometheus server (default: http://localhost:9090)
-- `METRICS_PORT`: Port for exposing Prometheus metrics (default: 8000)
 - `API_PORT`: Port for the Grafana JSON API (default: 9001)
 
 ## Data Sources
 
-By default, the service uses a mock data source with sample data from a CSV file. To use real data:
+By default, the service uses a mock data source with sample data from a CSV file:
 
 1. Place a CSV file named `carbon_intensity.csv` in the same directory as the script
 2. The CSV should have a `start_date` column and columns for each region (e.g., `ISONE`, `CAISO`, etc.)
@@ -64,5 +59,17 @@ By default, the service uses a mock data source with sample data from a CSV file
 
 To add more regions for forecasting:
 
-1. Edit the `self.regions` list in the `PrometheusMetricsMock` and `ForecastService` classes
+1. Edit the `self.regions` list in the `ForecastService` class
 2. Add the region data to your CSV file if using sample data
+
+## Integrating with Kepler and Green Dashboard
+
+This is a diagram of the integration of the forecasting service with Kepler and the Green Dashboard.
+
+```mermaid
+graph TD;
+    A[Forecast Model] -->|Generates JSON| B[FastAPI Server];
+    B -->|Exposes /forecast Endpoint| C[Grafana JSON API Plugin];
+    C -->|Queries JSON Data| D[Green Dashboard];
+    E[Kepler Prometheus Metrics] -->|Real Power Consumption| D;
+```
